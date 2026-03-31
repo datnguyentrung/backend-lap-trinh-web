@@ -78,4 +78,8 @@ public interface StudentMapper {
                 .branchAddress(branch != null ? branch.getAddress() : null)
                 .build();
     }
+
+    // Map Student sang StudentResDTO.StudentAutocomplete
+    @Mapping(source = "branch.branchName", target = "branchName")
+    StudentResDTO.StudentAutocomplete studentAutocomplete(Student student);
 }

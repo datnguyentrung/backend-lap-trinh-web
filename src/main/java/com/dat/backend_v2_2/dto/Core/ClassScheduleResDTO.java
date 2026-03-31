@@ -71,4 +71,21 @@ public class ClassScheduleResDTO {
         Integer maxCapacity;      // Sĩ số tối đa
         String note;
     }
+
+    /**
+     * Tiến
+     * Cascading Dropdown (chọn Chi nhánh -> ra Lớp học)
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class ClassScheduleDropdown {
+        String scheduleId; // Value để FE đẩy lên khi submit form
+        String displayLabel;   // Label hiển thị (VD: "Thứ 2 (08:30 - 10:00) - Cơ bản - Phòng tập A")
+        // Thêm các field phụ để FE có thể tự custom hiển thị nếu muốn
+        ScheduleLevel scheduleLevel;
+        Weekday weekday;
+    }
 }

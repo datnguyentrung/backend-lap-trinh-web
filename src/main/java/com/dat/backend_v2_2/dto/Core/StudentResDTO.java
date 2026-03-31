@@ -80,5 +80,24 @@ public class StudentResDTO {
         private String email;
         private String code; // Mã sinh viên
     }
+
+    /**
+     * Tiến
+     * DTO trả về thông tin tối giản cho tính năng Autocomplete (Tìm kiếm nhanh)
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StudentAutocomplete {
+        private UUID userId;
+        private String studentCode;
+        private String fullName;
+        private String nationalCode; // Hỗ trợ hiển thị CCCD lúc search
+        private String branchName;
+        private StudentStatus studentStatus;
+    }
+
+
 }
 

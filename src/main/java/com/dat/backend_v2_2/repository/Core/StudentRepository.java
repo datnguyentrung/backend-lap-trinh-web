@@ -3,7 +3,11 @@ package com.dat.backend_v2_2.repository.Core;
 import com.dat.backend_v2_2.domain.Core.Student;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
@@ -17,4 +21,13 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
     boolean existsByNationalCode(String nationalCode);
 
     boolean existsByStudentCode(String generatedCode);
+
+    // Class assignment - Tiến
+    @Query("SELECT s FROM Student s " +
+            "WHERE (:keyword IS NULL OR :keyword = '' " +
+            "OR LOWER(s.fullName) LIKE CONCAT('%',LOWER(:keyword),'%') " +
+            "OR s.nationalCode LIKE CONCAT('%',:keyword,'%') )"
+
+    )
+    Page<Student> searchAutoComplete(@Param("keyword") String keyword, Pageable pageable);
 }

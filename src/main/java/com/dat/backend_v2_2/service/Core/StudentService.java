@@ -14,6 +14,8 @@ import com.dat.backend_v2_2.util.error.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -245,5 +247,25 @@ public class StudentService {
         studentRepository.delete(student);
 
         log.info("Successfully permanently deleted student with code: {}", student.getStudentCode());
+    }
+
+    /**
+     * Tìm kiếm võ sinh (Autocomplete) theo Tên hoặc CCCD có phân trang
+     *
+     * @param keyword  Từ khóa tìm kiếm (Tên hoặc mã định danh/CCCD)
+     * @param pageable Thông tin phân trang
+     * @return Page chứa danh sách StudentAutocomplete DTO
+     */
+    @Transactional(readOnly = true)
+    public Page<StudentResDTO.StudentAutocomplete> searchStudentAutocomplete(
+          String keyword, Pageable pageable
+    ){
+        log.info("Searching student autocomplete with keyword: '{}'", keyword);
+
+        // Chuẩn hóa keyword khoảng trắng thừa
+        String cleanKeyword = (keyword == null) ? "" : keyword.trim();
+
+        Page<Student> students = studentRepository.searchAutoComplete(cleanKeyword,pageable);
+        return students.map(studentMapper::studentAutocomplete);
     }
 }
