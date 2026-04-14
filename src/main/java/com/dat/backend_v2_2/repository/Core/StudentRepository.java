@@ -24,10 +24,10 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
 
     // Class assignment - Tiến
     @Query("SELECT s FROM Student s " +
-            "WHERE (:keyword IS NULL OR :keyword = '' " +
+            "WHERE s.studentStatus = com.dat.backend_v2_2.enums.Core.StudentStatus.ACTIVE " +
+            "AND (:keyword IS NULL OR :keyword = '' " +
             "OR LOWER(s.fullName) LIKE CONCAT('%',LOWER(:keyword),'%') " +
             "OR s.nationalCode LIKE CONCAT('%',:keyword,'%') )"
-
     )
     Page<Student> searchAutoComplete(@Param("keyword") String keyword, Pageable pageable);
 }

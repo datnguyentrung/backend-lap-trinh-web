@@ -4,7 +4,6 @@ import com.dat.backend_v2_2.domain.Core.ClassSchedule;
 import com.dat.backend_v2_2.domain.Core.Student;
 import com.dat.backend_v2_2.domain.Operation.StudentEnrollment;
 import com.dat.backend_v2_2.dto.Operation.StudentEnrollmentReqDTO;
-import com.dat.backend_v2_2.dto.Operation.StudentEnrollmentResDTO;
 import com.dat.backend_v2_2.enums.ErrorCode;
 import com.dat.backend_v2_2.enums.Operation.StudentEnrollmentStatus;
 import com.dat.backend_v2_2.mapper.Operation.StudentEnrollmentMapper;
@@ -33,34 +32,78 @@ public class StudentEnrollmentService {
 
     private final StudentEnrollmentMapper studentEnrollmentMapper;
 
+    /**
+     * Ghi danh võ sinh vào một hoặc nhiều lớp học cùng lúc.
+     * <p>
+     * Luồng hoạt động (Basic Flow):
+     * 1. Service nhận request từ Controller.
+     * 2. Gọi DB lấy thông tin Võ sinh (getStudentById).
+     * 3. Gọi DB lấy danh sách ClassSchedule theo list ID (findByScheduleIds - 1
+     * query).
+     * 4. Kiểm tra tính hợp lệ: Số lớp tìm được phải bằng số lớp yêu cầu.
+     * 5. Duyệt vòng lặp từng lớp:
+     * a. Kiểm tra trùng lặp (existsByStudent...) -> nếu đã tồn tại thì throw lỗi.
+     * b. Dùng Mapper tạo Entity từ DTO.
+     * c. Set các quan hệ (Student, ClassSchedule, Status).
+     * d. Thêm vào danh sách chờ (enrollmentsToSave).
+     * 6. Bulk Insert toàn bộ danh sách một lần (saveAll).
+     * <p>
+     * Exception Flow 1 (CLASS_NOT_FOUND): Số lớp tìm được < số lớp yêu cầu.
+     * Exception Flow 2 (STUDENT_ALREADY_ENROLLED): Võ sinh đã học lớp này với trạng
+     * thái ACTIVE.
+     * -> Cả 2 trường hợp đều Rollback toàn bộ Transaction.
+     *
+     * @param request DTO chứa studentId, scheduleIds, joinDate, note
+     * @throws AppException ErrorCode.CLASS_NOT_FOUND nếu có lớp ID sai
+     * @throws AppException ErrorCode.STUDENT_ALREADY_ENROLLED nếu võ sinh đã trong
+     *                      lớp
+     */
     @Transactional(rollbackFor = Exception.class)
-    // 1. Đổi tên method cho chuẩn (sửa lỗi chính tả Enrollent -> Enrollment)
-    // 2. Thay vì trả về String, hãy trả về void (hoặc ID của bản ghi mới tạo)
     public void createStudentEnrollment(StudentEnrollmentReqDTO.CreateRequest request) {
-        // 1. Tìm Student (1 lần)
+
+        // ========================================================================
+        // STEP 1: LẤY THÔNG TIN VÕ SINH
+        // Service gọi Database (getStudentById) để lấy Entity Võ sinh
+        // Hàm này tự throw Exception nếu không tìm thấy
+        // ========================================================================
         Student student = studentService.getStudentById(request.getStudentId());
 
-        // 2. Tìm tất cả ClassSchedule theo danh sách ID (1 query thay vì N query)
+        // ========================================================================
+        // STEP 2: LẤY DANH SÁCH LỚP HỌC (1 QUERY THAY VÌ N QUERY)
+        // Gọi DB (findByScheduleIds) dựa trên danh sách ID truyền vào
+        // Dùng findAllById thay vì từng lần findById để tối ưu hiệu suất
+        // ========================================================================
         List<ClassSchedule> schedules = classScheduleService.findByScheduleIds(request.getScheduleIds());
 
-        // Validation: Kiểm tra xem có lớp nào ID sai không
+        // ========================================================================
+        // STEP 3: VALIDATION - KIỂM TRA TÍNH HỢP LỆ CỦA DANH SÁCH LỚP
+        // Nếu số lớp tìm thấy ít hơn số lớp được gửi lên -> có ID sai
+        // -> Exception Flow 1: CLASS_NOT_FOUND (404)
+        // ========================================================================
         if (schedules.size() != request.getScheduleIds().size()) {
+            log.warn("Class schedule not found. Requested: {}, Found: {}",
+                    request.getScheduleIds().size(), schedules.size());
             throw new AppException(ErrorCode.CLASS_NOT_FOUND);
         }
 
+        // ========================================================================
+        // STEP 4: DUYỆT VÒNG LẶP - XỬ LÝ TỪNG LỚP HỌC
+        // ========================================================================
         List<StudentEnrollment> enrollmentsToSave = new ArrayList<>();
 
-        // 3. Duyệt qua từng lớp để tạo Enrollment
         for (ClassSchedule schedule : schedules) {
 
-            // Check trùng lặp: Học viên đã học lớp này chưa?
-            // Lưu ý: Nếu list quá lớn, query trong vòng for sẽ chậm.
-            // Nếu list nhỏ (vài lớp) thì chấp nhận được. Tối ưu hơn thì dùng query IN ở bước trên.
-            boolean exists = studentEnrollmentRepository.existsByStudent_UserIdAndClassSchedule_ScheduleIdAndStatus(
-                    UUID.fromString(request.getStudentId()),
-                    schedule.getScheduleId(),
-                    StudentEnrollmentStatus.ACTIVE
-            );
+            // STEP 4a: Kiểm tra trùng lặp đăng ký
+            // Hỏi DB: "Võ sinh này đã ACTIVE trong lớp này chưa?"
+            // Lưu ý: Query trong vòng for vẫn chấp nhận được vì số lớp chọn thường nhỏ (<
+            // 5)
+            // -> Exception Flow 2: STUDENT_ALREADY_ENROLLED (409) -> Rollback toàn bộ
+            // Transaction
+            boolean exists = studentEnrollmentRepository
+                    .existsByStudent_UserIdAndClassSchedule_ScheduleIdAndStatus(
+                            UUID.fromString(request.getStudentId()),
+                            schedule.getScheduleId(),
+                            StudentEnrollmentStatus.ACTIVE);
 
             if (exists) {
                 log.warn("Student {} already in class {}", student.getUserId(), schedule.getScheduleId());
@@ -69,18 +112,23 @@ public class StudentEnrollmentService {
                 throw new AppException(ErrorCode.STUDENT_ALREADY_ENROLLED);
             }
 
-            // Dùng Mapper tạo object cơ bản (có joinDate, note...)
+            // STEP 4b: Dùng Mapper chuyển đổi Request DTO -> Entity (có joinDate, note...)
             StudentEnrollment enrollment = studentEnrollmentMapper.toEntity(request);
 
-            // Set các quan hệ
+            // STEP 4c: Set các quan hệ sau khi Mapper tạo object cơ bản
             enrollment.setStudent(student);
             enrollment.setClassSchedule(schedule);
-            enrollment.setStatus(StudentEnrollmentStatus.ACTIVE);
+            enrollment.setStatus(StudentEnrollmentStatus.ACTIVE); // Mặc định ghi danh là ACTIVE
 
+            // STEP 4d: Thêm vào danh sách chờ lưu (batch)
             enrollmentsToSave.add(enrollment);
         }
 
-        // 4. Lưu tất cả một lúc (Bulk Insert)
+        // ========================================================================
+        // STEP 5: PERSISTENCE - LƯU ĐỒNG LOẠT (BULK INSERT)
+        // Gọi saveAll 1 lần thay vì save() từng phần tử -> Hiệu quả hơn
+        // Database xác nhận lưu thành công -> Transaction được Commit
+        // ========================================================================
         studentEnrollmentRepository.saveAll(enrollmentsToSave);
 
         log.info("Successfully enrolled student {} to {} classes", student.getUserId(), enrollmentsToSave.size());
@@ -88,21 +136,21 @@ public class StudentEnrollmentService {
 
     /**
      * Lấy danh sách học viên theo ID lịch học lớp
+     * 
      * @param classScheduleId ID của lịch học lớp
      * @return Danh sách học viên
      */
     public List<StudentEnrollment> getStudentEnrollmentsByClassScheduleId(String classScheduleId) {
         return studentEnrollmentRepository.findByScheduleIdAndStatusWithStudent(
                 classScheduleId,
-                StudentEnrollmentStatus.ACTIVE
-        );
+                StudentEnrollmentStatus.ACTIVE);
     }
 
-    public StudentEnrollment getEnrollmentByStudentUserIdAndClassScheduleId(UUID studentUserId, String classScheduleId) {
-        return studentEnrollmentRepository.findByStudent_UserIdAndClassSchedule_ScheduleIdAndStatus (
+    public StudentEnrollment getEnrollmentByStudentUserIdAndClassScheduleId(UUID studentUserId,
+            String classScheduleId) {
+        return studentEnrollmentRepository.findByStudent_UserIdAndClassSchedule_ScheduleIdAndStatus(
                 studentUserId,
                 classScheduleId,
-                StudentEnrollmentStatus.ACTIVE
-        ).orElseThrow(() -> new AppException(ErrorCode.ENROLLMENT_NOT_FOUND));
+                StudentEnrollmentStatus.ACTIVE).orElseThrow(() -> new AppException(ErrorCode.ENROLLMENT_NOT_FOUND));
     }
 }

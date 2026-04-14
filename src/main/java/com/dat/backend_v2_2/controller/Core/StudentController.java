@@ -22,11 +22,11 @@ public class StudentController {
     @GetMapping("/search-autocomplete")
     public ResponseEntity<Page<StudentResDTO.StudentAutocomplete>> searchAutocomplete(@RequestParam(required = false,defaultValue = "") String keyword,
                                                                                       @RequestParam (defaultValue = "0") int page,
-                                                                                      @RequestParam (defaultValue = "10") int page_sỉze
+                                                                                      @RequestParam (defaultValue = "10") int pageSize
                                                                                       )
     {
         // Sắp xếp mặc định theo tên học viên
-        Pageable pageable = PageRequest.of(page,page_sỉze, Sort.by("fullName").ascending());
+        Pageable pageable = PageRequest.of(page,pageSize, Sort.by("fullName").ascending());
         Page<StudentResDTO.StudentAutocomplete> result = studentService.searchStudentAutocomplete(keyword, pageable);
         return ResponseEntity.ok(result);
     }

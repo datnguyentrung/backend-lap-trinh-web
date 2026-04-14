@@ -1,6 +1,8 @@
 package com.dat.backend_v2_2.util.error;
 
 import com.dat.backend_v2_2.dto.RestResponse;
+import com.dat.backend_v2_2.enums.ErrorCode;
+import com.dat.backend_v2_2.util.error.AppException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -60,6 +62,18 @@ public class GlobalException {
         res.setMessage(ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
+    }
+
+    // Xử lý các lỗi nghiệp vụ (Business Exceptions)
+    @ExceptionHandler(AppException.class)
+    public ResponseEntity<RestResponse<Object>> handleAppException(AppException ex) {
+        ErrorCode errorCode = ex.getErrorCode();
+        RestResponse<Object> res = new RestResponse<>();
+        res.setStatusCode(errorCode.getStatusCode());
+        res.setError("AppException");
+        res.setMessage(errorCode.getMessage());
+
+        return ResponseEntity.status(errorCode.getStatusCode()).body(res);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
