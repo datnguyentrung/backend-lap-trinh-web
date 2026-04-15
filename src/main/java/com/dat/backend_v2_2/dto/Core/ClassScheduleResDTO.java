@@ -1,15 +1,13 @@
 package com.dat.backend_v2_2.dto.Core;
 
-import com.dat.backend_v2_2.enums.Core.ScheduleLevel;
-import com.dat.backend_v2_2.enums.Core.ScheduleLocation;
-import com.dat.backend_v2_2.enums.Core.ScheduleShift;
-import com.dat.backend_v2_2.enums.Core.Weekday;
+import com.dat.backend_v2_2.enums.Core.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalTime;
+import java.util.List;
 
 @Data
 public class ClassScheduleResDTO {
@@ -52,23 +50,25 @@ public class ClassScheduleResDTO {
         Long branchId;
         String branchName;
 
+        // --- Thông tin HLV (Danh sách vì có thể có nhiều HLV dạy chung 1 lớp) ---
+        List<CoachResDTO.CoachSummary> coaches;
+
         // --- Thông tin Lớp học ---
         ScheduleLevel scheduleLevel;      // Trình độ (BEGINNER, INTERMEDIATE...)
         ScheduleShift scheduleShift;      // Ca học (MORNING, EVENING...)
         ScheduleLocation scheduleLocation;              // Phòng học (Location)
+        ScheduleStatus scheduleStatus;              // Trạng thái (ACTIVE, INACTIVE...)
 
         // --- Thời gian ---
         Weekday weekday;
 
-        @JsonFormat(pattern = "HH:mm")
+//        @JsonFormat(pattern = "HH:mm")
         LocalTime startTime;
 
-        @JsonFormat(pattern = "HH:mm")
+//        @JsonFormat(pattern = "HH:mm")
         LocalTime endTime;
 
         // --- Metadata (Thống kê) ---
         Integer totalStudents;    // Sĩ số hiện tại (Calculated field)
-        Integer maxCapacity;      // Sĩ số tối đa
-        String note;
     }
 }

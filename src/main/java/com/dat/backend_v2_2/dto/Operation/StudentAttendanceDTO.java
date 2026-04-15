@@ -8,12 +8,13 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
 public class StudentAttendanceDTO {
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -27,6 +28,9 @@ public class StudentAttendanceDTO {
         UUID studentId;
         String studentName;
 
+        // Thông tin học phí (Thông tin cho tts generate nhắc nhở đóng học phí nếu chưa đóng)
+        TuitionPaymentDetailDTO.TuitionStatusResponse tuitionStatus;
+
         // Thông tin buổi học
         String classScheduleId;
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -34,15 +38,15 @@ public class StudentAttendanceDTO {
 
         // Trạng thái điểm danh
         AttendanceStatus attendanceStatus;
-        Instant checkInTime;
-        String recordedByCoachName; // Tên HLV đã điểm danh
+        LocalDateTime checkInTime;
+//        String recordedByCoachName; // Tên HLV đã điểm danh
 
         // Đánh giá
         EvaluationStatus evaluationStatus;
         String note;
         String evaluatedByCoachName; // Tên HLV đã đánh giá
 
-        Instant updatedAt;
+        LocalDateTime updatedAt;
     }
 
     @Data
@@ -55,8 +59,7 @@ public class StudentAttendanceDTO {
         UUID enrollmentId;
         UUID studentId;
         AttendanceStatus attendanceStatus;
-        Instant checkInTime;
-        String recordedByCoachName;
+        LocalDateTime checkInTime;
 
         EvaluationStatus evaluationStatus;
         String evaluatedByCoachName;
@@ -74,6 +77,7 @@ public class StudentAttendanceDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class BatchCreateRequest {
         @NotNull(message = "Schedule ID không được để trống")
@@ -108,7 +112,7 @@ public class StudentAttendanceDTO {
         @NotNull
         AttendanceStatus attendanceStatus; // Thường là EXCUSED (Có phép) hoặc PRESENT (Đi bù)
 
-        Instant checkInTime; // Nullable. Nếu xin nghỉ (EXCUSED/ABSENT) thì để null. Nếu đi học thì truyền vào.
+        LocalDateTime checkInTime; // Nullable. Nếu xin nghỉ (EXCUSED/ABSENT) thì để null. Nếu đi học thì truyền vào.
 
         @Size(max = 500)
         String note; // Lý do: "Về quê", "Ốm", ...
@@ -125,9 +129,6 @@ public class StudentAttendanceDTO {
     public static class UpdateStatusRequest {
         @NotNull(message = "Trạng thái điểm danh không được để trống")
         AttendanceStatus attendanceStatus;
-
-        @NotNull(message = "Thời gian điểm danh không được để trống")
-        Instant checkInTime;
 
         // Lưu ý: Không truyền coachId ở đây để bảo mật.
         // Backend sẽ tự lấy ID của HLV đang đăng nhập từ Token.
@@ -159,5 +160,13 @@ public class StudentAttendanceDTO {
         AttendanceStatus attendanceStatus;
         EvaluationStatus evaluationStatus;
         String note;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class CreateRequest {
+        UUID studentId;
     }
 }

@@ -1,20 +1,42 @@
 package com.dat.backend_v2_2.dto.Core;
 
+import com.dat.backend_v2_2.dto.PageResponse;
 import com.dat.backend_v2_2.enums.Core.Belt;
 import com.dat.backend_v2_2.enums.Core.StudentStatus;
 import com.dat.backend_v2_2.enums.Security.UserStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 public class StudentResDTO {
+    /**
+     * DTO trả về danh sách Student kèm theo thống kê số lượng theo từng trạng thái
+     * Bao gồm:
+     * - activeStudentCount: Số lượng học viên đang học (ACTIVE)
+     * - reservedStudentCount: Số lượng học viên đang tạm dừng (RESERVED)
+     * - droppedStudentCount: Số lượng học viên đã nghỉ học (DROPPED)
+     * - Thông tin phân trang được trích xuất từ Page để tránh warning serialization
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class StudentListResponse {
+        // Statistics
+        long activeStudentCount;
+        long reservedStudentCount;
+        long droppedStudentCount;
+
+        PageResponse<StudentOverview> students; // Thông tin phân trang và danh sách học viên
+    }
+
 
     /**
      * DTO trả về thông tin chi tiết Student
@@ -38,13 +60,13 @@ public class StudentResDTO {
         private UserStatus status; // Trạng thái tài khoản hệ thống (ACTIVE, BANNED, etc.)
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
-        private Instant createdAt;
+        private LocalDateTime createdAt;
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
-        private Instant updatedAt;
+        private LocalDateTime updatedAt;
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
-        private Instant lastLoginAt;
+        private LocalDateTime lastLoginAt;
 
         private String roleName; // Tên role (STUDENT, TEACHER, ADMIN, etc.)
 
@@ -68,6 +90,34 @@ public class StudentResDTO {
         private String branchAddress;
     }
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class StudentOverview {
+        String studentCode;
+
+        String nationalCode;
+
+        String fullName;
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+        LocalDate birthDate;
+
+        String phoneNumber;
+
+        Belt belt;
+
+        String roleName;
+
+        StudentStatus studentStatus;
+
+        String branchName;
+
+        List<ClassScheduleResDTO.ClassScheduleSummary> classSchedules; // Danh sách lịch học của học viên
+    }
+
     /**
      * DTO trả về thông tin tóm tắt Student cho danh sách
      */
@@ -77,7 +127,7 @@ public class StudentResDTO {
     public static class StudentSummary {
         private UUID userId;
         private String fullName;
-        private String email;
+        //        private String email;
         private String code; // Mã sinh viên
     }
 }
