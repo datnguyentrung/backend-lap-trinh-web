@@ -17,13 +17,14 @@ public interface StudentMapper {
     UserRes toUserRes(Student student);
 
     @Mapping(target = "idUser", source = "userId") // Lấy từ User (cha)
-    @Mapping(target = "idAccount", source = "studentCode") // Dùng mã SV làm ID Account
-    @Mapping(target = "idRole", source = "role", qualifiedByName = "getRoleName") // Xử lý object Role ra String
+    @Mapping(target = "idRole", source = "role", qualifiedByName = "getRoleName")
+        // Xử lý object Role ra String
     UserRes.UserInfo toUserInfo(Student student);
 
     @Mapping(target = "name", source = "fullName") // Mapping khác tên: fullName -> name
     @Mapping(target = "phone", source = "phoneNumber") // Mapping khác tên
-    @Mapping(target = "isActive", source = "status", qualifiedByName = "mapActiveStatus") // Convert Enum -> Boolean
+    @Mapping(target = "isActive", source = "status", qualifiedByName = "mapActiveStatus")
+        // Convert Enum -> Boolean
     UserRes.UserProfile toUserProfile(Student student);
 
     @Named("mapActiveStatus")
@@ -76,6 +77,36 @@ public interface StudentMapper {
                 .branchId(branch != null ? branch.getBranchId() : null)
                 .branchName(branch != null ? branch.getBranchName() : null)
                 .branchAddress(branch != null ? branch.getAddress() : null)
+                .build();
+    }
+
+    /**
+     * Map Student entity sang StudentOverview DTO
+     * Bao gồm thông tin cơ bản cho danh sách tổng quan
+     * Lưu ý: classSchedules cần được set riêng từ service layer
+     *
+     * @param student Student entity
+     * @return StudentOverview DTO
+     */
+    default StudentResDTO.StudentOverview toStudentOverview(Student student) {
+        if (student == null) {
+            return null;
+        }
+
+        Branch branch = student.getBranch();
+        Role role = student.getRole();
+
+        return StudentResDTO.StudentOverview.builder()
+                .studentCode(student.getStudentCode())
+                .nationalCode(student.getNationalCode())
+                .fullName(student.getFullName())
+                .birthDate(student.getBirthDate())
+                .phoneNumber(student.getPhoneNumber())
+                .belt(student.getBelt())
+                .roleName(role != null ? role.getName() : null)
+                .studentStatus(student.getStudentStatus())
+                .branchName(branch != null ? branch.getBranchName() : null)
+                .classSchedules(null) // Cần được populate từ service layer
                 .build();
     }
 }
