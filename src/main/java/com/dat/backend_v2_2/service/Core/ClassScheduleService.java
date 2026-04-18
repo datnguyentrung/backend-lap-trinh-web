@@ -56,18 +56,23 @@ public class ClassScheduleService {
                 String startTime = c.getStartTime() == null ? "": c.getStartTime().format(timeFormatter);
                 String endTime = c.getEndTime() == null ? "": c.getEndTime().format(timeFormatter);
 
-                // Tạo chuỗi hiển thị : "MONDAY (08:30 - 10:00) - BASIC(Level) - INDOOR(Location)"
-                String label = String.format("%s (%s - %s) - %s %s",
-                        c.getWeekday() == null ? "" : c.getWeekday().name(),
-                        startTime,
-                        endTime,
-                        c.getLevel()  == null ? "" : c.getLevel().name(),
-                        c.getLocation() == null ? "" : c.getLocation().name()
-                        );
+                // Lấy nhãn Tiếng Việt từ Enum
+                String weekdayLabel = c.getWeekday() == null ? "" : c.getWeekday().getLabel();
+                String levelLabel = c.getLevel() == null ? "" : c.getLevel().getDisplayName();
+                String timeRange = startTime + " - " + endTime;
+
+                // Tạo chuỗi hiển thị chuẩn: "Thứ Hai (08:30 - 10:00) - Lớp Cơ Bản"
+                String label = String.format("%s (%s) - %s",
+                        weekdayLabel,
+                        timeRange,
+                        levelLabel);
 
                 return ClassScheduleResDTO.ClassScheduleDropdown.builder()
                         .scheduleId(c.getScheduleId())
                         .displayLabel(label)
+                        .weekdayLabel(weekdayLabel)
+                        .levelLabel(levelLabel)
+                        .timeRange(timeRange)
                         .scheduleLevel(c.getLevel())
                         .weekday(c.getWeekday())
                         .build();

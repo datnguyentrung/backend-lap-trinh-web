@@ -75,4 +75,46 @@ public class StudentEnrollmentController {
 
                 return ResponseEntity.ok(enrollments);
         }
+
+        /**
+         * Lấy toàn bộ lớp học hiện tại của một võ sinh
+         * GET /api/v1/student-enrollments/student/{studentId}
+         *
+         * @param studentId ID của võ sinh (UUID)
+         * @return 200 OK - Danh sách enrollment chi tiết
+         */
+        @GetMapping("/student/{studentId}")
+        public ResponseEntity<List<StudentEnrollmentResDTO.Response>> getEnrollmentsByStudentId(
+                        @PathVariable String studentId) {
+                log.info("Request get active enrollments for student: {}", studentId);
+
+                List<StudentEnrollmentResDTO.Response> enrollments = studentEnrollmentService
+                                .getEnrollmentsByStudentId(java.util.UUID.fromString(studentId))
+                                .stream()
+                                .map(studentEnrollmentMapper::toResponse)
+                                .toList();
+
+                return ResponseEntity.ok(enrollments);
+        }
+
+        /**
+         * Xóa ghi danh của võ sinh trong một lớp học
+         * DELETE /api/v1/student-enrollments/student/{studentId}/class-schedule/{classScheduleId}
+         *
+         * @param studentId       ID võ sinh (UUID)
+         * @param classScheduleId ID lịch học
+         * @return 200 OK - Xóa thành công
+         */
+        @DeleteMapping("/student/{studentId}/class-schedule/{classScheduleId}")
+        public ResponseEntity<String> deleteStudentEnrollment(
+                        @PathVariable String studentId,
+                        @PathVariable String classScheduleId) {
+                log.info("Request delete enrollment for student: {} and class: {}", studentId, classScheduleId);
+
+                studentEnrollmentService.deleteEnrollmentByStudentAndClass(
+                                java.util.UUID.fromString(studentId),
+                                classScheduleId);
+
+                return ResponseEntity.ok("Đã xóa ghi danh thành công");
+        }
 }

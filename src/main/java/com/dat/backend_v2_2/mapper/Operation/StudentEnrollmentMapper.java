@@ -29,8 +29,49 @@ public interface StudentEnrollmentMapper { // 1. Đổi thành interface
     @Mapping(target = "classSchedule", source = "classSchedule") // Map entity Class sang ClassSummary
     StudentEnrollmentResDTO.Response toResponse(StudentEnrollment entity);
 
+    /**
+     * Hậu xử lý để điền các nhãn Tiếng Việt an toàn (Tránh NullPointerException)
+     */
+    @AfterMapping
+    default void fillScheduleLabels(@MappingTarget StudentEnrollmentResDTO.Response response, StudentEnrollment entity) {
+        if (entity.getClassSchedule() == null || response.getClassSchedule() == null) {
+            return;
+        }
+
+        var s = entity.getClassSchedule();
+        var res = response.getClassSchedule();
+
+        // 1. Prepare parts
+        java.time.format.DateTimeFormatter tf = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
+        String start = s.getStartTime() != null ? s.getStartTime().format(tf) : "";
+        String end = s.getEndTime() != null ? s.getEndTime().format(tf) : "";
+        String timeRange = (!start.isEmpty() && !end.isEmpty()) ? start + " - " + end : "";
+
+        String weekdayLabel = s.getWeekday() != null ? s.getWeekday().getLabel() : "";
+        String levelLabel = s.getLevel() != null ? s.getLevel().getDisplayName() : "";
+
+        // 2. Build displayLabel: "Thứ Hai (17:30 - 19:00) - Lớp Cơ Bản"
+        StringBuilder labelBuilder = new StringBuilder();
+        if (!weekdayLabel.isEmpty()) labelBuilder.append(weekdayLabel);
+        if (!timeRange.isEmpty()) {
+            labelBuilder.append(" (").append(timeRange).append(")");
+        }
+        if (!levelLabel.isEmpty()) {
+            if (labelBuilder.length() > 0) labelBuilder.append(" - ");
+            labelBuilder.append(levelLabel);
+        }
+
+        // 3. Set values to DTO
+        res.setWeekdayLabel(weekdayLabel);
+        res.setLevelLabel(levelLabel);
+        res.setTimeRange(timeRange);
+        res.setDisplayLabel(labelBuilder.toString());
+        res.setBranchName(s.getBranch() != null ? s.getBranch().getBranchName() : "");
+    }
+
     // Mapping cho SimpleResponse
     @Mapping(target = "classScheduleSummary", source = "classSchedule")
+    @Mapping(target = "classScheduleSummary.branchName", source = "classSchedule.branch.branchName")
     @Mapping(target = "studentSummary", source = "student")
     @Mapping(target = "joinDate", source = "joinDate")
     @Mapping(target = "status", source = "status")

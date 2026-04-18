@@ -153,4 +153,38 @@ public class StudentEnrollmentService {
                 classScheduleId,
                 StudentEnrollmentStatus.ACTIVE).orElseThrow(() -> new AppException(ErrorCode.ENROLLMENT_NOT_FOUND));
     }
+
+    /**
+     * Lấy danh sách các lớp học HIỆN TẠI (ACTIVE) của một võ sinh.
+     * Sử dụng JOIN FETCH trong repository để tránh N+1.
+     *
+     * @param studentId UUID của võ sinh
+     * @return Danh sách enrollment kèm thông tin lớp
+     */
+    public List<StudentEnrollment> getEnrollmentsByStudentId(UUID studentId) {
+        log.info("Fetching active enrollments for student: {}", studentId);
+        return studentEnrollmentRepository.findByStudent_UserIdAndStatusWithClassSchedule(
+                studentId,
+                StudentEnrollmentStatus.ACTIVE);
+    }
+
+    /**
+     * Xóa (Hủy) ghi danh của một võ sinh trong một lớp học cụ thể.
+     * Hiện tại thực hiện xóa cứng khỏi DB (hoặc có thể chuyển trạng thái INACTIVE nếu cần).
+     *
+     * @param studentId  UUID của võ sinh
+     * @param scheduleId ID của lịch học
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteEnrollmentByStudentAndClass(UUID studentId, String scheduleId) {
+        log.info("Removing enrollment: Student {} - Class {}", studentId, scheduleId);
+
+        StudentEnrollment enrollment = getEnrollmentByStudentUserIdAndClassScheduleId(studentId, scheduleId);
+
+        // Ở đây chúng ta chọn XÓA CỨNG để làm sạch data (Nghiệp vụ có thể thay đổi thành
+        // setStatus(INACTIVE))
+        studentEnrollmentRepository.delete(enrollment);
+
+        log.info("Successfully removed enrollment for student {} from class {}", studentId, scheduleId);
+    }
 }

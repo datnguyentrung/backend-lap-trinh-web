@@ -33,6 +33,12 @@ public class ClassScheduleResDTO {
         LocalTime endTime;
 
         Weekday weekday; // Enum (MONDAY, TUESDAY...)
+
+        // --- Nhãn Tiếng Việt (Cho FE hiển thị trực tiếp) ---
+        String displayLabel;   // "Thứ Hai (08:30 - 10:00) - Lớp Cơ Bản"
+        String weekdayLabel;   // "Thứ Hai"
+        String levelLabel;     // "Lớp Cơ Bản"
+        String timeRange;      // "08:30 - 10:00"
     }
 
     /**
@@ -82,9 +88,11 @@ public class ClassScheduleResDTO {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class ClassScheduleDropdown {
-        String scheduleId; // Value để FE đẩy lên khi submit form
-        String displayLabel;   // Label hiển thị (VD: "Thứ 2 (08:30 - 10:00) - Cơ bản - Phòng tập A")
-        // Thêm các field phụ để FE có thể tự custom hiển thị nếu muốn
+        String scheduleId;     // Value để FE đẩy lên khi submit form
+        String displayLabel;   // "Thứ Hai (08:30 - 10:00) - Lớp Cơ Bản"
+        String weekdayLabel;   // "Thứ Hai"
+        String levelLabel;     // "Lớp Cơ Bản"
+        String timeRange;      // "08:30 - 10:00"
         ScheduleLevel scheduleLevel;
         Weekday weekday;
     }

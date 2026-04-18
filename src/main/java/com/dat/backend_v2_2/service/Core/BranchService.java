@@ -12,7 +12,7 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class BranchService{
+public class BranchService {
     private final BranchRepository branchRepository;
 
     public Branch getBranchById(Long idBranch) {
@@ -21,7 +21,8 @@ public class BranchService{
     }
 
     /**
-     * Lấy toàn bộ danh sách Chi nhánh đang hoạt động để hiển thị Dropdown trên Frontend.
+     * Lấy toàn bộ danh sách Chi nhánh đang hoạt động để hiển thị Dropdown trên
+     * Frontend.
      * <p>
      * Sử dụng cho Cascading Dropdown: FE load tất cả Branch trước,
      * sau đó user chọn Branch -> FE gọi tiếp API lấy các Lớp học của Branch đó.
