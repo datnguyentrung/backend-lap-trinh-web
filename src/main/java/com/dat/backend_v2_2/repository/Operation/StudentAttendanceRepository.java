@@ -1,16 +1,18 @@
 package com.dat.backend_v2_2.repository.Operation;
 
-import com.dat.backend_v2_2.domain.Operation.StudentAttendance;
-import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import com.dat.backend_v2_2.domain.Operation.StudentAttendance;
+
+import jakarta.validation.constraints.NotNull;
 
 @Repository
 public interface StudentAttendanceRepository extends JpaRepository<StudentAttendance, UUID> {
@@ -30,9 +32,14 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
     })
     @Query("""
         SELECT DISTINCT sa FROM StudentAttendance sa
-        WHERE sa.studentEnrollment.classSchedule.scheduleId = :scheduleId
+        JOIN FETCH sa.studentEnrollment se
+        JOIN FETCH se.student s
+        JOIN FETCH se.classSchedule cs
+        LEFT JOIN FETCH sa.recordedByCoach rbc
+        LEFT JOIN FETCH sa.evaluatedByCoach ebc
+        WHERE cs.scheduleId = :scheduleId
         AND sa.sessionDate = :sessionDate
-        ORDER BY sa.studentEnrollment.student.fullName
+        ORDER BY s.fullName
         """)
     List<StudentAttendance> findByScheduleIdAndSessionDateWithDetails(
         @Param("scheduleId") String scheduleId,

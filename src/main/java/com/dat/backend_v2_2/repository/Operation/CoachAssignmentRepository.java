@@ -35,4 +35,23 @@ public interface CoachAssignmentRepository extends JpaRepository<CoachAssignment
             @Param("coachId") UUID coachId,
             @Param("status") CoachAssignmentStatus status
     );
+
+    @Query("""
+        SELECT ca FROM CoachAssignment ca
+        JOIN FETCH ca.classSchedule cs
+        JOIN FETCH cs.branch b
+        JOIN FETCH ca.coach c
+        WHERE ca.coach.userId = :coachId
+        AND ca.status = :status
+        AND cs.weekday = :weekday
+        AND ca.assignedDate <= :currentDate
+        AND (ca.endDate IS NULL OR ca.endDate >= :currentDate)
+        ORDER BY cs.startTime ASC, cs.scheduleId ASC
+    """)
+    List<CoachAssignment> findTodayAssignmentsByCoachId(
+            @Param("coachId") UUID coachId,
+            @Param("status") CoachAssignmentStatus status,
+            @Param("weekday") com.dat.backend_v2_2.enums.Core.Weekday weekday,
+            @Param("currentDate") java.time.LocalDate currentDate
+    );
 }

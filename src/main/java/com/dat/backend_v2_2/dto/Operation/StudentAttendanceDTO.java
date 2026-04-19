@@ -1,16 +1,21 @@
 package com.dat.backend_v2_2.dto.Operation;
 
-import com.dat.backend_v2_2.enums.Operation.AttendanceStatus;
-import com.dat.backend_v2_2.enums.Operation.EvaluationStatus;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
+
+import com.dat.backend_v2_2.enums.Operation.AttendanceStatus;
+import com.dat.backend_v2_2.enums.Operation.EvaluationStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Data
 public class StudentAttendanceDTO {
@@ -22,26 +27,20 @@ public class StudentAttendanceDTO {
     public static class Response {
         UUID attendanceId;
         UUID enrollmentId;
-
-        // Thông tin học viên (Flatten để FE dễ hiển thị)
         UUID studentId;
         String studentName;
-
-        // Thông tin buổi học
         String classScheduleId;
+        
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         LocalDate sessionDate;
 
-        // Trạng thái điểm danh
-        AttendanceStatus attendanceStatus;
+        String attendanceStatus; 
+        
         Instant checkInTime;
-        String recordedByCoachName; // Tên HLV đã điểm danh
-
-        // Đánh giá
+        String recordedByCoachName;
         EvaluationStatus evaluationStatus;
         String note;
-        String evaluatedByCoachName; // Tên HLV đã đánh giá
-
+        String evaluatedByCoachName;
         Instant updatedAt;
     }
 
@@ -96,7 +95,7 @@ public class StudentAttendanceDTO {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class ManualLogRequest {
         @NotNull(message = "Phải chọn học viên")
-        UUID studentId; // Bắt buộc phải biết tạo cho ai
+        UUID studentId; 
 
         @NotNull(message = "Phải chọn lớp")
         String classScheduleId;
@@ -106,12 +105,12 @@ public class StudentAttendanceDTO {
         LocalDate sessionDate;
 
         @NotNull
-        AttendanceStatus attendanceStatus; // Thường là EXCUSED (Có phép) hoặc PRESENT (Đi bù)
+        AttendanceStatus attendanceStatus; 
 
-        Instant checkInTime; // Nullable. Nếu xin nghỉ (EXCUSED/ABSENT) thì để null. Nếu đi học thì truyền vào.
+        Instant checkInTime; 
 
         @Size(max = 500)
-        String note; // Lý do: "Về quê", "Ốm", ...
+        String note; 
     }
 
     /**
@@ -124,15 +123,10 @@ public class StudentAttendanceDTO {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class UpdateStatusRequest {
         @NotNull(message = "Trạng thái điểm danh không được để trống")
-        AttendanceStatus attendanceStatus;
+        String attendanceStatus; 
 
-        @NotNull(message = "Thời gian điểm danh không được để trống")
         Instant checkInTime;
-
-        // Lưu ý: Không truyền coachId ở đây để bảo mật.
-        // Backend sẽ tự lấy ID của HLV đang đăng nhập từ Token.
     }
-
     /**
      * DTO dùng để cập nhật đánh giá/nhận xét (PATCH)
      * Tách riêng vì đôi khi HLV chấm điểm sau giờ học

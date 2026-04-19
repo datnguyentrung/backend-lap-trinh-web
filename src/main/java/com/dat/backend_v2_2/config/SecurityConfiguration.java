@@ -1,8 +1,10 @@
 package com.dat.backend_v2_2.config;
 
-import com.dat.backend_v2_2.util.SecurityUtil;
-import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import com.nimbusds.jose.util.Base64;
+import java.util.List;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,9 +24,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.util.List;
+import com.dat.backend_v2_2.util.SecurityUtil;
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import com.nimbusds.jose.util.Base64;
 
 @Configuration
 @EnableWebSecurity
@@ -95,17 +97,9 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         authz -> authz
-//                                .requestMatchers(
-//                                        "/api/v1/auth/login",
-//                                        "/api/v1/auth/logout",
-//                                        "/api/v1/user"
-//                                ).permitAll()
-//                                // 👇 Chỉ GET là public
-//                                .requestMatchers(HttpMethod.GET,
-//                                        "/api/v1/tournament/**", "/api/v1/achievement/**",
-//                                        "/api/v1/branches"
-//                                ).permitAll()
-//                                .anyRequest().authenticated()
+                                // MỞ CỬA CÁC ĐƯỜNG DẪN NÀY ĐỂ TRÁNH LỖI 401 KHI CHƯA ĐĂNG NHẬP
+                                .requestMatchers("/auth/login", "/auth/account", "/api/v1/auth/login", "/auth/register").permitAll()
+                                // Cho phép các request còn lại đi qua (giúp bạn test UI nhanh hơn)
                                 .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer((oauth2) -> oauth2
@@ -116,8 +110,7 @@ public class SecurityConfiguration {
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(
-                        session ->
-                                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
         return http.build();
     }

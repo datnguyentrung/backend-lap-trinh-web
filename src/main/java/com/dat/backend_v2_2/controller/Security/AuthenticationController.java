@@ -1,15 +1,5 @@
 package com.dat.backend_v2_2.controller.Security;
 
-import com.dat.backend_v2_2.domain.Security.AuthToken;
-import com.dat.backend_v2_2.domain.Security.User;
-import com.dat.backend_v2_2.dto.Security.LoginReq;
-import com.dat.backend_v2_2.dto.Security.LoginRes;
-import com.dat.backend_v2_2.service.Security.AuthTokenService;
-import com.dat.backend_v2_2.service.Security.UserService;
-import com.dat.backend_v2_2.util.SecurityUtil;
-import com.dat.backend_v2_2.util.error.AuthenticationException;
-import com.dat.backend_v2_2.util.error.IdInvalidException;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -19,10 +9,26 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.dat.backend_v2_2.domain.Security.AuthToken;
+import com.dat.backend_v2_2.domain.Security.User;
+import com.dat.backend_v2_2.dto.Security.LoginReq;
+import com.dat.backend_v2_2.dto.Security.LoginRes;
+import com.dat.backend_v2_2.service.Security.AuthTokenService;
+import com.dat.backend_v2_2.service.Security.UserService;
+import com.dat.backend_v2_2.util.SecurityUtil;
+import com.dat.backend_v2_2.util.error.AuthenticationException;
+import com.dat.backend_v2_2.util.error.IdInvalidException;
+
+import jakarta.validation.Valid;
 
 @RestController
-    @RequestMapping("/api/v1/auth")
+    @RequestMapping("/auth")
 public class AuthenticationController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final SecurityUtil securityUtil;
@@ -104,15 +110,19 @@ public class AuthenticationController {
 
     @GetMapping("/account")
     public ResponseEntity<LoginRes.UserLogin> getAccount() {
-        String phoneNumber = SecurityUtil.getCurrentUserLogin().isPresent() ?
-                SecurityUtil.getCurrentUserLogin().get() : null;
-        User currentUserDB = userService.getUserByPhoneNumber(phoneNumber);
+        // 1. Dữ liệu lấy ra từ Token thực chất đang là userId (UUID) chứ không phải phone
+        String userId = SecurityUtil.getCurrentUserLogin().orElse(null); 
+        
+        // 2. ✅ SỬA TẠI ĐÂY: Dùng hàm getUserById thay vì getUserByPhoneNumber
+        User currentUserDB = userService.getUserById(userId); 
+        
         LoginRes.UserLogin userLogin = new LoginRes.UserLogin();
         if (currentUserDB != null) {
             userLogin.setUserId(currentUserDB.getUserId());
             userLogin.setStatus(currentUserDB.getStatus());
             userLogin.setRole(currentUserDB.getRole().getCode());
-        }
+        } 
+        // Nếu vẫn không thấy thì có thể ném lỗi hoặc trả về rỗng tùy ông
         return ResponseEntity.ok().body(userLogin);
     }
 

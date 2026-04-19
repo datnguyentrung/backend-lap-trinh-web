@@ -1,27 +1,43 @@
 package com.dat.backend_v2_2.domain.Core;
 
+import java.time.LocalDate;
+
 import com.dat.backend_v2_2.domain.Security.User;
 import com.dat.backend_v2_2.enums.Core.StudentStatus;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDate;
-
 @Getter
 @Setter
-@SuperBuilder // Bắt buộc dùng SuperBuilder vì kế thừa từ User
+@SuperBuilder 
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "student", schema = "core")
-@PrimaryKeyJoinColumn(name = "user_id") // Khóa chính cũng là FK trỏ về bảng User
-@EqualsAndHashCode(callSuper = true) // So sánh object bao gồm cả các field của User
+@PrimaryKeyJoinColumn(name = "user_id")
+@EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Student extends User {
 
@@ -35,9 +51,6 @@ public class Student extends User {
     @Column(name = "start_date", nullable = false)
     LocalDate startDate = LocalDate.now();
 
-    // Đổi tên biến status -> studentStatus để tránh trùng với User.status
-    // User.status: Active/Locked (Trạng thái tài khoản hệ thống)
-    // Student.studentStatus: Studying/Paused/Dropout (Trạng thái học tập)
     @NotNull(message = "Trạng thái học viên không được để trống")
     @Enumerated(EnumType.STRING)
     @Builder.Default

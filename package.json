@@ -1,0 +1,8 @@
+{
+  "name": "backend-lap-trinh-web",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/datnguyentrung/backend-lap-trinh-web",
+  "author": "Vu Quoc Hiep <vuquochiep2005@gmail.com>",
+  "license": "MIT"
+}

@@ -5,33 +5,31 @@ import lombok.Data;
 
 @Data
 public class LoginReq {
+
     @Data
     public static class UserBase {
-//        private UUID idUser; // optional khi update
-
         @NotBlank(message = "Phone number must not be blank")
         private String phoneNumber;
 
         @NotBlank(message = "Password must not be blank")
         private String password; // raw password (sẽ mã hóa trong service)
 
-        @NotBlank(message = "IdDevice must not be blank")
+        // Bỏ @NotBlank ở đây để tránh lỗi 400 khi frontend chưa kịp gửi idDevice
         private String idDevice;
 
         private String fcmToken;
     }
 
     @Data
-    public static class RefreshRequest{
+    public static class RefreshRequest {
         @NotBlank(message = "RefreshToken must not be blank")
         private String refreshToken;
     }
 
     @Data
-    public static class UpdateFcmReq{
+    public static class UpdateFcmReq {
         @NotBlank(message = "Refresh token không được để trống")
         private String refreshToken;
-        // Chúng ta dùng Refresh Token làm "chìa khóa" để tìm đúng phiên đăng nhập cần update
 
         @NotBlank(message = "FCM Token không được để trống")
         private String fcmToken;

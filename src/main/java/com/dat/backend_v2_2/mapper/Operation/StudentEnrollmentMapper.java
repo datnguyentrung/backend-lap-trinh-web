@@ -1,11 +1,17 @@
 package com.dat.backend_v2_2.mapper.Operation;
 
+import java.util.List;
+
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.ReportingPolicy;
+
 import com.dat.backend_v2_2.domain.Operation.StudentEnrollment;
 import com.dat.backend_v2_2.dto.Operation.StudentEnrollmentReqDTO;
 import com.dat.backend_v2_2.dto.Operation.StudentEnrollmentResDTO;
-import org.mapstruct.*;
-
-import java.util.List;
 
 @Mapper(
         componentModel = "spring",
