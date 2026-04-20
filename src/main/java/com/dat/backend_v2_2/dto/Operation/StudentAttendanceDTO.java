@@ -3,7 +3,11 @@ package com.dat.backend_v2_2.dto.Operation;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
+import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.dat.backend_v2_2.domain.Operation.StudentAttendance;
 import com.dat.backend_v2_2.enums.Operation.AttendanceStatus;
 import com.dat.backend_v2_2.enums.Operation.EvaluationStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -30,6 +34,7 @@ public class StudentAttendanceDTO {
         UUID studentId;
         String studentName;
         String classScheduleId;
+        
         
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         LocalDate sessionDate;
@@ -153,5 +158,9 @@ public class StudentAttendanceDTO {
         AttendanceStatus attendanceStatus;
         EvaluationStatus evaluationStatus;
         String note;
+    }
+    public interface StudentAttendanceRepository extends JpaRepository<StudentAttendance, UUID> {
+    // Tìm bản ghi theo ID học viên và Ngày hôm nay
+        Optional<StudentAttendance> findByStudentEnrollmentIdAndSessionDate(UUID enrollmentId, LocalDate date);
     }
 }

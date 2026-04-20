@@ -3,6 +3,7 @@ package com.dat.backend_v2_2.repository.Operation;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,18 +13,10 @@ import org.springframework.stereotype.Repository;
 
 import com.dat.backend_v2_2.domain.Operation.StudentAttendance;
 
-import jakarta.validation.constraints.NotNull;
-
 @Repository
 public interface StudentAttendanceRepository extends JpaRepository<StudentAttendance, UUID> {
 
-    /**
-     * Optimized query using EntityGraph to eagerly fetch related entities.
-     * This approach is better than JOIN FETCH because:
-     * 1. Avoids cartesian product when fetching multiple collections
-     * 2. Uses subselect strategy for better performance
-     * 3. Cleaner separation of concerns
-     */
+    // Giải quyết lỗi ORDER BY expressions must appear in select list bằng cách bỏ DISTINCT
     @EntityGraph(attributePaths = {
         "studentEnrollment.student",
         "studentEnrollment.classSchedule",
@@ -31,18 +24,21 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
         "evaluatedByCoach"
     })
     @Query("""
-        SELECT DISTINCT sa FROM StudentAttendance sa
-        JOIN FETCH sa.studentEnrollment se
-        JOIN FETCH se.student s
-        JOIN FETCH se.classSchedule cs
-        LEFT JOIN FETCH sa.recordedByCoach rbc
-        LEFT JOIN FETCH sa.evaluatedByCoach ebc
-        WHERE cs.scheduleId = :scheduleId
+        SELECT sa FROM StudentAttendance sa
+        JOIN sa.studentEnrollment se
+        JOIN se.student s
+        WHERE se.classSchedule.scheduleId = :scheduleId
         AND sa.sessionDate = :sessionDate
-        ORDER BY s.fullName
+        ORDER BY s.fullName ASC
         """)
     List<StudentAttendance> findByScheduleIdAndSessionDateWithDetails(
         @Param("scheduleId") String scheduleId,
+        @Param("sessionDate") LocalDate sessionDate
+    );
+
+    @Query("SELECT s FROM StudentAttendance s WHERE s.studentEnrollment.enrollmentId = :enrollmentId AND s.sessionDate = :sessionDate")
+    Optional<StudentAttendance> findByEnrollmentAndDate(
+        @Param("enrollmentId") UUID enrollmentId, 
         @Param("sessionDate") LocalDate sessionDate
     );
 
@@ -55,7 +51,7 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
         AND sa.session_date = :sessionDate
         """, nativeQuery = true)
     List<UUID> findStudentIdsByScheduleAndSessionDate(
-            @Param("scheduleId") @NotNull(message = "Schedule ID không được để trống") String classScheduleId,
-            @Param("sessionDate") @NotNull(message = "Ngày học không được để trống") LocalDate sessionDate
+            @Param("scheduleId") String classScheduleId,
+            @Param("sessionDate") LocalDate sessionDate
     );
 }

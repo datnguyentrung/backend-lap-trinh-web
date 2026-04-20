@@ -10,6 +10,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalTime;
+import java.util.List;
 
 @Data
 public class ClassScheduleResDTO {
@@ -59,6 +60,7 @@ public class ClassScheduleResDTO {
 
         // --- Thời gian ---
         Weekday weekday;
+        List<StudentAttendanceInfo> students;
 
         @JsonFormat(pattern = "HH:mm")
         LocalTime startTime;
@@ -87,5 +89,15 @@ public class ClassScheduleResDTO {
         // Thêm các field phụ để FE có thể tự custom hiển thị nếu muốn
         ScheduleLevel scheduleLevel;
         Weekday weekday;
+    }
+
+    @Data
+    @Builder
+    public static class StudentAttendanceInfo {
+        String enrollmentId;   // ID cực kỳ quan trọng để click và lưu điểm danh
+        String studentCode;    
+        String fullName;       
+        String attendanceStatus; 
+        String note;           // Lời đánh giá cũ
     }
 }

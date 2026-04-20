@@ -30,4 +30,6 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
 
     )
     Page<Student> searchAutoComplete(@Param("keyword") String keyword, Pageable pageable);
+
+    
 }

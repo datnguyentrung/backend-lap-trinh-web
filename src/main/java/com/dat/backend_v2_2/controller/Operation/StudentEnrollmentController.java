@@ -1,8 +1,10 @@
 package com.dat.backend_v2_2.controller.Operation;
 
+import com.dat.backend_v2_2.dto.Operation.StudentAttendanceDTO;
 import com.dat.backend_v2_2.dto.Operation.StudentEnrollmentReqDTO;
 import com.dat.backend_v2_2.dto.Operation.StudentEnrollmentResDTO;
 import com.dat.backend_v2_2.mapper.Operation.StudentEnrollmentMapper;
+import com.dat.backend_v2_2.service.Core.AttendanceService;
 import com.dat.backend_v2_2.service.Operation.StudentEnrollmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +24,14 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/student-enrollments")
+@CrossOrigin(origins = "*")
 public class StudentEnrollmentController {
 
     private final StudentEnrollmentService studentEnrollmentService;
 
     private final StudentEnrollmentMapper studentEnrollmentMapper;
+
+    private final AttendanceService attendanceService;
 
     /**
      * Đăng ký học viên vào lớp học
@@ -73,5 +78,11 @@ public class StudentEnrollmentController {
                 studentEnrollmentMapper.toSimpleResponseList(studentEnrollmentService.getStudentEnrollmentsByClassScheduleId(classScheduleId));
 
         return ResponseEntity.ok(enrollments);
+    }
+
+    @PostMapping("/evaluate")
+    public ResponseEntity<String> saveEvaluation(@RequestBody StudentAttendanceDTO.ManualLogRequest request) {
+        attendanceService.saveEvaluation(request);
+        return ResponseEntity.ok("Cập nhật đánh giá thành công!");
     }
 }

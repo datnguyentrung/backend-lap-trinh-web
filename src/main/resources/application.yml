@@ -2,7 +2,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/version_4}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:Vuquochiep12a1@}
+    password: ${SPRING_DATASOURCE_PASSWORD:123}
 
     driver-class-name: org.postgresql.Driver
 
@@ -34,6 +34,7 @@ spring:
     port: ${SPRING_RABBITMQ_PORT:5672}
     username: ${SPRING_RABBITMQ_USERNAME:root}
     password: ${SPRING_RABBITMQ_PASSWORD:31102005}
+    
 
   jpa:
     hibernate:
@@ -135,4 +136,10 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: always
+  health:
+    rabbit:
+      enabled: false # Tắt check RabbitMQ
+    redis:
+      enabled: false # Tắt check Redis
+

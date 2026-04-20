@@ -17,4 +17,6 @@ public interface ClassScheduleRepository extends JpaRepository<ClassSchedule, St
             "WHERE branch.id = :branchId"
     )
     List<ClassSchedule> findClassesByBranchIdForDropdown(@Param("branchId") Long branchId);
+
+    
 }
